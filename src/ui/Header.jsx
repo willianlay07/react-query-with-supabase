@@ -15,6 +15,9 @@ const Header = () => {
         <li style={{ paddingLeft: "30px", paddingRight: "30px" }}>
           <NavLink to="/persons">Persons</NavLink>
         </li>
+        <li style={{ paddingLeft: "30px", paddingRight: "30px" }}>
+          <NavLink to="/students">Students</NavLink>
+        </li>
       </ul>
     </div>
   );

@@ -8,7 +8,7 @@ const PersonList = ({ eachPerson }) => {
   const queryClient = useQueryClient();
 
   const { isPending: isDeleting, mutate } = useMutation({
-    mutationFn: (id) => deletePersonal(id),
+    mutationFn: deletePersonal,
     onSuccess: () => {
       toast.success("Successfully deleted.");
 

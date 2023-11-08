@@ -7,6 +7,7 @@ import AppLayout from "./ui/AppLayout";
 import Home from "./pages/Home";
 import About from "./pages/About";
 import Persons from "./features/persons/Persons";
+import Students from "./pages/Students";
 
 const App = () => {
   const queryClient = new QueryClient({
@@ -27,6 +28,7 @@ const App = () => {
             <Route path="/" element={<Home />} />
             <Route path="/about" element={<About />} />
             <Route path="/persons" element={<Persons />} />
+            <Route path="/students" element={<Students />} />
           </Route>
         </Routes>
       </BrowserRouter>

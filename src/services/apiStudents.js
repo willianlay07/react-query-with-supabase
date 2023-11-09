@@ -11,25 +11,35 @@ export async function getStudents() {
   return data;
 }
 
-export async function createStudent(newStudent) {
-  console.log(newStudent.image);
+export async function createEditStudent(newStudent, id) {
+  const hasImagePath = newStudent.image?.startsWith?.(supabaseUrl);
 
   const imageName = `${Math.random()}-${newStudent.image.name}`.replaceAll(
     "/",
     ""
   );
-  const imagePath = `${supabaseUrl}/storage/v1/object/public/student-images/${imageName}`;
+  const imagePath = hasImagePath
+    ? newStudent.image
+    : `${supabaseUrl}/storage/v1/object/public/student-images/${imageName}`;
 
-  // 1. Create
-  const { data, error } = await supabase
-    .from("students")
-    .insert([
+  // 1. Create or Edit Student;
+  let query = supabase.from("students");
+
+  // 1A) Create
+  if (!id) {
+    query = query.insert([
       {
         ...newStudent,
         image: imagePath,
       },
-    ])
-    .select();
+    ]);
+  }
+  if (id) {
+    query = query.update({ ...newStudent, image: imagePath }).eq("id", id);
+  }
+
+  // 1. Create
+  const { data, error } = await query.select().single();
 
   if (error) {
     console.error(error);
@@ -37,6 +47,8 @@ export async function createStudent(newStudent) {
   }
 
   // 2. Upload Image
+  if (hasImagePath) return data;
+
   const { error: storageError } = await supabase.storage
     .from("student-images")
     .upload(imageName, newStudent.image);

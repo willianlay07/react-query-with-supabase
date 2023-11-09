@@ -1,6 +1,8 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import styled from "styled-components";
 import { deleteStudent } from "../../services/apiStudents";
+import { useState } from "react";
+import CreateStudent from "./CreateStudent";
 
 const TableRow = styled.div`
   display: grid;
@@ -27,6 +29,7 @@ const Img = styled.img`
 `;
 
 const StudentRow = ({ student }) => {
+  const [showForm, setShowForm] = useState(false);
   const { id, image, fullname, mobile, email } = student;
 
   const queryClient = useQueryClient();
@@ -44,22 +47,26 @@ const StudentRow = ({ student }) => {
   });
 
   return (
-    <TableRow role="row">
-      <div>
-        <Img src={image} />
-      </div>
-      <div>{fullname}</div>
-      <div>{mobile}</div>
-      <div>{email}</div>
-      <div>
-        <button>Edit</button>
-      </div>
-      <div>
-        <button disabled={isPending} onClick={() => mutate(id)}>
-          Delete
-        </button>
-      </div>
-    </TableRow>
+    <>
+      <TableRow role="row">
+        <div>
+          <Img src={image} />
+        </div>
+        <div>{fullname}</div>
+        <div>{mobile}</div>
+        <div>{email}</div>
+        <div>
+          <button onClick={() => setShowForm((prev) => !prev)}>Edit</button>
+        </div>
+        <div>
+          <button disabled={isPending} onClick={() => mutate(id)}>
+            Delete
+          </button>
+        </div>
+      </TableRow>
+
+      {showForm && <CreateStudent studentToEdit={student} />}
+    </>
   );
 };
 

@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 
 import FormRow from "../../ui/FormRow";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { createStudent } from "../../services/apiStudents";
+import { createEditStudent } from "../../services/apiStudents";
 
 const StyledDiv = styled.div`
   width: 900px;
@@ -13,13 +13,22 @@ const StyledDiv = styled.div`
   padding: 10px 10px;
 `;
 
-const CreateStudent = ({ setNewStudent }) => {
-  const { register, handleSubmit, formState, reset } = useForm();
+const CreateStudent = ({ setNewStudent, studentToEdit = {} }) => {
+  // For Edit -- START;
+  const { id: editId, ...editValues } = studentToEdit;
+  const isEditSession = Boolean(editId);
+  // For Edit -- END;
+
+  const { register, handleSubmit, formState, reset } = useForm({
+    defaultValues: isEditSession ? editValues : {},
+  });
   const { errors } = formState;
 
   const queryClient = useQueryClient();
+
+  // Create New Student;
   const { isPending: isInserting, mutate: mutateNewStudent } = useMutation({
-    mutationFn: createStudent,
+    mutationFn: createEditStudent,
     onSuccess: () => {
       alert("Success");
 
@@ -33,18 +42,47 @@ const CreateStudent = ({ setNewStudent }) => {
     onError: (error) => alert(error.message),
   });
 
+  // Edit Student
+  const { isPending: isEditing, mutate: mutateEditStudent } = useMutation({
+    mutationFn: (x) => createEditStudent(x.newStudentData, x.id),
+    onSuccess: () => {
+      alert("Success Updated");
+
+      queryClient.invalidateQueries({
+        queryKey: ["students"],
+      });
+
+      reset();
+    },
+    onError: (error) => alert(error.message),
+  });
+
   function onSubmit(data) {
-    mutateNewStudent({
-      ...data,
-      image: data.image[0],
-    });
+    const image = typeof data.image === "string" ? data.image : data.image[0];
+
+    if (isEditSession) {
+      mutateEditStudent({
+        newStudentData: {
+          ...data,
+          image,
+        },
+        id: editId,
+      });
+    } else {
+      mutateNewStudent({
+        ...data,
+        image: data.image[0],
+      });
+    }
   }
 
   function onError() {}
 
+  const isWorking = isInserting || isEditing;
+
   return (
     <div>
-      <h1>Create Student</h1>
+      <h1>{isEditSession ? "Edit Student" : "Create Student"}</h1>
       <StyledDiv>
         <Form onSubmit={handleSubmit(onSubmit, onError)}>
           <FormRow label="Full Name" error={errors?.fullname?.message}>
@@ -82,12 +120,14 @@ const CreateStudent = ({ setNewStudent }) => {
               id="image"
               accept="image/*"
               {...register("image", {
-                required: "Profile photo required",
+                required: isEditSession ? false : "Profile photo required",
               })}
             />
           </FormRow>
 
-          <button disabled={isInserting}>Create</button>
+          <button disabled={isWorking}>
+            {isEditSession ? "Update Student" : "Create Student"}
+          </button>
         </Form>
       </StyledDiv>
     </div>
